@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ricettario di casa</title>
+<style>
+:root{
+  --bg:#faf7f2; --panel:#ffffff; --ink:#2b2520; --muted:#7a6f66; --line:#e8e0d6;
+  --accent:#b5532c; --accent-soft:#f6e6dc; --chip:#f1ebe3; --ok:#4f7a4a;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:16px;line-height:1.5}
+.app{display:grid;grid-template-columns:320px 1fr;height:100vh}
+aside{border-right:1px solid var(--line);background:#f4efe8;display:flex;flex-direction:column;min-height:0}
+.brand{padding:18px 18px 8px;font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:.2px}
+.brand small{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.search{padding:8px 14px}
+.search input{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;background:#fff}
+.cats{padding:4px 14px 8px;display:flex;flex-wrap:wrap;gap:6px}
+.cats button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.cats button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.list{overflow:auto;flex:1;padding:4px 0 16px}
+.grp{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 18px 4px}
+.item{display:block;width:100%;text-align:left;border:0;background:transparent;padding:7px 18px;font-size:14.5px;cursor:pointer;color:var(--ink)}
+.item:hover{background:#ebe3d8}
+.item.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.item .sub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.foot{border-top:1px solid var(--line);padding:10px 14px;font-size:12px;color:var(--muted)}
+.foot label{color:var(--accent);cursor:pointer;text-decoration:underline}
+main{overflow:auto;min-height:0}
+.page{max-width:820px;margin:0 auto;padding:34px 36px 80px}
+.crumb{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+h1{font-family:var(--serif);font-size:38px;line-height:1.15;margin:6px 0 10px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px 8px;margin:6px 0 18px}
+.chip{background:var(--chip);border-radius:6px;padding:3px 9px;font-size:13px;color:#5b5047}
+.chip b{font-weight:600;color:var(--ink)}
+.scale{position:sticky;top:0;z-index:2;background:rgba(250,247,242,.96);backdrop-filter:blur(4px);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;font-size:14px}
+.scale .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.scale input{width:72px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;font-size:15px;text-align:right;background:#fff}
+.scale button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;font-size:14px;cursor:pointer}
+.scale button:hover{border-color:var(--accent);color:var(--accent)}
+.scale .factor{font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent)}
+.scale .hint{flex-basis:100%;font-size:12px;color:var(--muted)}
+h2{font-family:var(--serif);font-size:24px;margin:30px 0 8px;font-weight:600;border-bottom:1px solid var(--line);padding-bottom:4px}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:20px 0 6px}
+h4{font-size:15px;margin:16px 0 4px}
+p{margin:8px 0}
+ul.ing{list-style:none;padding:0;margin:6px 0 10px}
+ul.ing li{display:flex;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line);cursor:pointer}
+ul.ing li.done{opacity:.4;text-decoration:line-through}
+.q{min-width:92px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);white-space:nowrap}
+.q.edit{color:var(--ink);border-bottom:1px dotted #c9b8a8;cursor:text}
+.q.none{color:transparent}
+.q.changed{color:var(--accent)}
+.qin{width:80px;font:inherit;font-weight:600;text-align:right;border:1px solid var(--accent);border-radius:5px;padding:1px 4px}
+@media (min-width:821px) and (orientation:portrait){
+  body{font-size:19px}
+  .app{grid-template-columns:340px 1fr}
+  .brand{font-size:28px}
+  .search input{font-size:18px;padding:12px 14px}
+  .cats button{font-size:15px;padding:7px 13px}
+  .item{font-size:17.5px;padding:11px 18px}
+  .page{padding:36px 34px 80px}
+  h1{font-size:44px}
+  h2{font-size:28px}
+  .scale{font-size:17px}
+  .scale button{padding:9px 18px;font-size:18px}
+  .scale input{width:96px;font-size:19px;padding:7px}
+  ul.ing li{padding:11px 4px}
+  .q{min-width:110px}
+  ol li{margin:12px 0}
+  figure img{max-height:420px}
+}
+ol{padding-left:24px} ol li{margin:7px 0;padding-left:4px}
+ul.plain{padding-left:22px} ul.plain li{margin:5px 0}
+img{max-width:100%;height:auto;border-radius:8px}
+figure{margin:12px 0}
+figure img{max-height:300px;width:auto;display:block}
+figure.cover img{width:100%;max-height:380px;object-fit:cover}
+figcaption{font-size:13px;color:var(--muted);margin-top:4px}
+a{color:var(--accent)}
+table{border-collapse:collapse;margin:10px 0;font-size:14px}
+td,th{border:1px solid var(--line);padding:4px 8px}
+.home h2{border:0;margin-top:26px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.card:hover{border-color:var(--accent)}
+.card .t{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.25}
+.card .s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.menu{display:none}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;inset:0;z-index:10;transform:translateX(-100%);transition:transform .2s}
+  aside.open{transform:none}
+  .menu{display:inline-block;position:fixed;top:10px;left:10px;z-index:11;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:15px}
+  .page{padding:56px 18px 60px}
+  .scale{position:static}
+  h1{font-size:30px}
+}
+@media print{
+  aside,.menu,.scale .hint,.scale button{display:none!important}
+  .app{display:block;height:auto} main{overflow:visible}
+  .scale{position:static;border:0;padding:0}
+  .page{padding:0;max-width:none}
+  ul.ing li{cursor:default}
+}
+</style>
+</head>
+<body>
+<button class="menu" onclick="toggleMenu()">☰ Ricette</button>
+<div class="app">
+  <aside id="side">
+    <div class="brand">Ricettario di casa<small id="count"></small></div>
+    <div class="search"><input id="q" type="search" placeholder="Cerca ricetta o ingrediente…" autocomplete="off"></div>
+    <div class="cats" id="cats"></div>
+    <div class="list" id="list"></div>
+    <div class="foot">
+      Hai modificato o aggiunto delle schede?
+      <label>Ricarica dalla cartella<input id="dir" type="file" webkitdirectory multiple hidden></label>
+    </div>
+  </aside>
+  <main id="main"><div class="page" id="page"></div></main>
+</div>
+
+<script id="data" type="application/json">/*DATA*/</script>
+<script>
+"use strict";
+let DOCS = JSON.parse(document.getElementById('data').textContent || '[]');
+const ORDER = ["Antipasti e stuzzichini","Primi piatti","Piatti unici","Secondi di carne","Secondi di pesce","Salse e basi","Pane, pizza e lievitati","Dolci","Tecnica"];
+let RECIPES = [], filterCat = null, current = null;
+
+/* ---------- parsing ---------- */
+function parseFront(md){
+  const m = md.match(/^﻿?---\n([\s\S]*?)\n---\n?/);
+  const meta = {};
+  if(!m) return {meta, body: md};
+  for(const line of m[1].split('\n')){
+    const i = line.indexOf(':'); if(i<0) continue;
+    const k = line.slice(0,i).trim(); let v = line.slice(i+1).trim();
+    if(v.startsWith('[') && v.endsWith(']')) v = v.slice(1,-1).split(',').map(s=>s.trim()).filter(Boolean);
+    meta[k] = v;
+  }
+  return {meta, body: md.slice(m[0].length)};
+}
+function build(){
+  RECIPES = DOCS.map(d=>{
+    const {meta, body} = parseFront(d.md);
+    const dir = d.path.includes('/') ? d.path.slice(0, d.path.lastIndexOf('/')+1) : '';
+    return {path:d.path, dir, meta, body,
+      title: meta.titolo || d.path.split('/').pop().replace(/\.md$/,''),
+      cat: meta.categoria || 'Altro', sub: meta.sottocategoria || '',
+      text: (body + ' ' + (meta.tag||[]).join(' ') + ' ' + (meta.fonte||'')).toLowerCase()};
+  }).sort((a,b)=> (rank(a.cat)-rank(b.cat)) || a.sub.localeCompare(b.sub,'it') || a.title.localeCompare(b.title,'it'));
+  document.getElementById('count').textContent = RECIPES.filter(r=>r.cat!=='Tecnica').length + ' ricette';
+  renderCats(); renderList();
+}
+function rank(c){const i=ORDER.indexOf(c);return i<0?99:i}
+
+/* ---------- quantities ---------- */
+const FR = {'½':.5,'¼':.25,'¾':.75,'⅓':1/3,'⅔':2/3};
+const NUM = String.raw`(?:\d+\s*[½¼¾⅓⅔]|\d+(?:[.,]\d+)?(?:\/\d+)?|[½¼¾⅓⅔])`;
+const QRE = new RegExp('^(' + NUM + ')(?:\\s*[-–]\\s*(' + NUM + '))?(?=\\s|$)');
+function toNum(s){
+  s = s.replace(/\s+/g,'');
+  const f = s.match(/^(\d*)([½¼¾⅓⅔])$/); if(f) return (+f[1]||0) + FR[f[2]];
+  if(s.includes('/')){const [a,b]=s.split('/');return +a/+b}
+  return parseFloat(s.replace(',','.'));
+}
+function unitOf(rest){const m = rest.match(/^\s*([a-zàèéìòù]+)/i); return m?m[1].toLowerCase():''}
+function fmt(v, unit){
+  const metric = ['g','ml','kg','l','cl','dl'].includes(unit);
+  if(metric){
+    if(unit==='kg'||unit==='l') return trim(v.toFixed(v<1?2:1));
+    if(v>=100) return String(Math.round(v/5)*5);
+    if(v>=10) return String(Math.round(v));
+    return trim(v.toFixed(1));
+  }
+  const q = Math.round(v*4)/4; if(q===0) return '¼';
+  const w = Math.floor(q), r = q-w;
+  const fr = r===.25?'¼':r===.5?'½':r===.75?'¾':'';
+  return (w? String(w):'') + fr || '0';
+}
+function trim(s){return s.replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1').replace('.',',')}
+
+/* ---------- markdown ---------- */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function inline(s, dir){
+  s = esc(s);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,(m,a,u)=>`<img alt="${a}" src="${/^https?:/.test(u)?u:encodeURI(dir+u)}">`);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/&lt;(https?:[^&\s]+)&gt;/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*?)\*/g,'$1<i>$2</i>');
+  return s;
+}
+function md2html(body, dir, ingredientMode){
+  const lines = body.split('\n'); let html='', list=null, section='', para=[];
+  const flushP=()=>{if(para.length){html+=`<p>${inline(para.join(' '),dir)}</p>`;para=[]}};
+  const close=()=>{if(list){html+=`</${list.split('.')[0]}>`;list=null}};
+  let ingIdx = 0;
+  for(let raw of lines){
+    const line = raw.replace(/\s+$/,'');
+    let m;
+    if(/^\s*$/.test(line)){flushP();close();continue}
+    if((m=line.match(/^(#{1,4})\s+(.*)$/))){
+      flushP();close();
+      const lv=m[1].length; if(lv===1) continue; // il titolo è già in testata
+      if(lv===2) section=m[2].trim().toLowerCase();
+      html+=`<h${lv}>${inline(m[2],dir)}</h${lv}>`; continue;
+    }
+    if((m=line.match(/^\s*(\d+)\.\s+(.*)$/))){
+      flushP(); if(list!=='ol'){close();html+=`<ol start="${m[1]}">`;list='ol'}
+      html+=`<li>${inline(m[2],dir)}</li>`; continue;
+    }
+    if((m=line.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/))){
+      flushP(); close();
+      const src=/^https?:/.test(m[2])?m[2]:encodeURI(dir+m[2]);
+      html+=`<figure class="${/copertina/.test(m[2])?'cover':''}"><img loading="lazy" alt="${esc(m[1])}" src="${src}">${m[1]?`<figcaption>${esc(m[1])}</figcaption>`:''}</figure>`; continue;
+    }
+    if((m=line.match(/^\s*[-*•]\s+(.*)$/))){
+      flushP();
+      if(ingredientMode && section==='ingredienti'){
+        if(list!=='ul.ing'){close();html+='<ul class="ing">';list='ul.ing'}
+        html+=ingLine(m[1], ingIdx++); continue;
+      }
+      if(list!=='ul'){close();html+='<ul class="plain">';list='ul'}
+      html+=`<li>${inline(m[1],dir)}</li>`; continue;
+    }
+    if(line.startsWith('|')){ // tabelle semplici
+      flushP(); if(/^\|[\s:|-]+\|$/.test(line)) continue;
+      if(list!=='table'){close();html+='<table>';list='table'}
+      html+='<tr>'+line.slice(1,-1).split('|').map(c=>`<td>${inline(c.trim(),dir)}</td>`).join('')+'</tr>'; continue;
+    }
+    close(); para.push(line.trim());
+  }
+  flushP(); close();
+  return html;
+}
+function ingLine(text, idx){
+  const m = text.match(QRE);
+  if(!m) return `<li data-i="${idx}"><span class="q none">·</span><span>${inline(text,'')}</span></li>`;
+  const rest = text.slice(m[0].length);
+  const a = toNum(m[1]), b = m[2]?toNum(m[2]):null, unit = unitOf(rest);
+  return `<li data-i="${idx}"><span class="q edit" data-a="${a}" data-b="${b===null?'':b}" data-u="${unit}" title="Clicca per impostare questa quantità">${esc(m[0])}</span><span>${inline(rest.trim(),'')}</span></li>`;
+}
+
+/* ---------- views ---------- */
+function renderCats(){
+  const cats = [...new Set(RECIPES.map(r=>r.cat))];
+  const el = document.getElementById('cats');
+  el.innerHTML = `<button class="${!filterCat?'on':''}" data-c="">Tutte</button>` +
+    cats.map(c=>`<button class="${filterCat===c?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{filterCat=b.dataset.c||null;renderCats();renderList()});
+}
+function matches(r){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  if(filterCat && r.cat!==filterCat) return false;
+  if(!q) return true;
+  return q.split(/\s+/).every(w=> r.title.toLowerCase().includes(w) || r.text.includes(w));
+}
+function renderList(){
+  const el = document.getElementById('list'); let html='', last='';
+  RECIPES.filter(matches).forEach(r=>{
+    const g = r.cat + (r.sub?' · '+r.sub:'');
+    if(g!==last){html+=`<div class="grp">${esc(g)}</div>`;last=g}
+    html+=`<button class="item ${current===r?'on':''}" data-p="${esc(r.path)}">${esc(r.title)}${r.meta.fonte?`<span class="sub">${esc(r.meta.fonte)}</span>`:''}</button>`;
+  });
+  el.innerHTML = html || '<div class="grp">Nessun risultato</div>';
+  el.querySelectorAll('.item').forEach(b=>b.onclick=()=>{location.hash = encodeURIComponent(b.dataset.p)});
+}
+function home(){
+  current=null; renderList();
+  let html='<div class="home"><div class="crumb">Ricettario</div><h1>Ricettario di casa</h1><p style="color:var(--muted)">Scegli una ricetta. Nelle schede puoi scalare le dosi per porzioni o diametro dello stampo, oppure cliccare su una quantità e scrivere quella che hai: tutto il resto si ricalcola.</p>';
+  const cats=[...new Set(RECIPES.map(r=>r.cat))];
+  for(const c of cats){
+    html+=`<h2>${esc(c)}</h2><div class="grid">`+RECIPES.filter(r=>r.cat===c).map(r=>`<button class="card" data-p="${esc(r.path)}"><div class="t">${esc(r.title)}</div><div class="s">${esc([r.sub,r.meta.fonte].filter(Boolean).join(' · '))}</div></button>`).join('')+'</div>';
+  }
+  document.getElementById('page').innerHTML = html+'</div>';
+  document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{location.hash=encodeURIComponent(b.dataset.p)});
+}
+function show(r){
+  current = r; renderList();
+  const M = r.meta, chips=[];
+  if(M.tempi) chips.push(`<span class="chip">⏱ ${esc(M.tempi)}</span>`);
+  if(M.fonte) chips.push(`<span class="chip">Fonte: <b>${esc(M.fonte)}</b></span>`);
+  (M.tag||[]).forEach(t=>chips.push(`<span class="chip">${esc(t)}</span>`));
+  const isRecipe = /##\s+Ingredienti/i.test(r.body);
+  let scale='';
+  if(isRecipe){
+    scale = `<div class="scale" id="scale"><span class="lbl">Dosi</span>
+      <button data-f="0.5">½</button><button data-f="1">×1</button><button data-f="2">×2</button>
+      <span>fattore <span class="factor" id="fac">×1</span></span>`;
+    if(M.porzioni) scale += `<span>Resa <input id="por" type="number" min="0" step="any" value="${+M.porzioni}"> ${esc(M.porzioni_unita||'porzioni')}</span>`;
+    if(M.stampo) scale += `<span>Stampo Ø <input id="sta" type="number" min="0" step="any" value="${+M.stampo}"> cm</span>`;
+    scale += `<span class="hint">Tocca una quantità per impostarla (es. la farina che hai). Tocca il nome di un ingrediente per spuntarlo. Le quantità scritte dentro il procedimento non vengono ricalcolate.</span></div>`;
+  }
+  document.getElementById('page').innerHTML =
+    `<div class="crumb">${esc(r.cat)}${r.sub?' · '+esc(r.sub):''}</div><h1>${esc(r.title)}</h1><div class="meta">${chips.join('')}</div>${scale}` +
+    md2html(r.body, r.dir, isRecipe) +
+    (M.originale?`<p style="margin-top:34px;font-size:12.5px;color:var(--muted)">File originale: ${esc(M.originale)} · scheda: ${esc(r.path)}</p>`:'');
+  document.getElementById('main').scrollTop = 0;
+  if(isRecipe) wireScale(r);
+  document.getElementById('side').classList.remove('open');
+}
+function wireScale(r){
+  let f = 1;
+  const apply = ()=>{
+    document.getElementById('fac').textContent = '×' + trim((Math.round(f*100)/100).toFixed(2));
+    document.querySelectorAll('.q.edit').forEach(q=>{
+      const a=+q.dataset.a, b=q.dataset.b?+q.dataset.b:null, u=q.dataset.u;
+      q.textContent = fmt(a*f,u) + (b!==null?'–'+fmt(b*f,u):'');
+      q.classList.toggle('changed', Math.abs(f-1)>1e-9);
+    });
+    const p=document.getElementById('por'); if(p && document.activeElement!==p) p.value = +(r.meta.porzioni*f).toFixed(2);
+    const s=document.getElementById('sta'); if(s && document.activeElement!==s) s.value = +(r.meta.stampo*Math.sqrt(f)).toFixed(1);
+  };
+  document.querySelectorAll('#scale button').forEach(b=>b.onclick=()=>{f=+b.dataset.f;apply()});
+  const p=document.getElementById('por'); if(p) p.oninput=()=>{const v=parseFloat(p.value); if(v>0){f=v/r.meta.porzioni;apply()}};
+  const s=document.getElementById('sta'); if(s) s.oninput=()=>{const v=parseFloat(s.value); if(v>0){f=(v/r.meta.stampo)**2;apply()}};
+  document.querySelectorAll('ul.ing li').forEach(li=>li.onclick=e=>{ if(!e.target.classList.contains('q')) li.classList.toggle('done') });
+  document.querySelectorAll('.q.edit').forEach(q=>q.onclick=e=>{
+    e.stopPropagation();
+    if(q.querySelector('input')) return;
+    const cur = q.textContent.split('–')[0];
+    const inp = document.createElement('input');
+    inp.type='text'; inp.setAttribute('inputmode','decimal'); inp.value=cur; inp.className='qin';
+    q.textContent=''; q.appendChild(inp); inp.focus(); inp.select();
+    let done=false;
+    const commit=ok=>{ if(done) return; done=true;
+      const n = toNum(inp.value.trim());
+      if(ok && n>0){ f = n/(+q.dataset.a); }
+      apply(); };
+    inp.onkeydown=ev=>{ if(ev.key==='Enter') commit(true); if(ev.key==='Escape') commit(false); };
+    inp.onblur=()=>commit(true);
+    inp.onclick=ev=>ev.stopPropagation();
+  });
+  apply();
+}
+function route(){
+  const p = decodeURIComponent(location.hash.slice(1));
+  const r = RECIPES.find(x=>x.path===p);
+  r ? show(r) : home();
+}
+function toggleMenu(){document.getElementById('side').classList.toggle('open')}
+
+/* ---------- ricarica dalla cartella ---------- */
+document.getElementById('dir').onchange = async e=>{
+  const files=[...e.target.files].filter(f=>f.name.endsWith('.md') && !/(^|\/)(_|LEGGIMI|Indice)/.test(f.webkitRelativePath.split('/').slice(1).join('/')));
+  if(!files.length){alert('Nessuna scheda .md trovata in quella cartella.');return}
+  DOCS = await Promise.all(files.map(async f=>({path:f.webkitRelativePath.split('/').slice(1).join('/'), md:await f.text()})));
+  build(); route();
+  alert(`Caricate ${DOCS.length} schede. Le modifiche valgono finché tieni aperta la pagina: per renderle permanenti esegui _strumenti/aggiorna_ricettario.py.`);
+};
+document.getElementById('q').oninput = renderList;
+window.onhashchange = route;
+if(location.protocol!=='file:'){var ft=document.querySelector('.foot'); if(ft) ft.style.display='none';}
+build(); route();
+</script>
+</body>
+</html>
